@@ -100,6 +100,7 @@ ifeq ($(TARGET), pcxtat)
 	PLATFORM = 8xxx
 	BOARD = pcxtat
 	EMU86_OBJS += rom-bios.o rom-pcxtat.o
+	EMU86_OBJS += syms.o
 endif
 
 ifeq ($(TARGET), elks)

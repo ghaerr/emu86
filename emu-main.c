@@ -22,6 +22,8 @@
 
 #include "op-exec.h"
 
+#include "syms.h"
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -101,6 +103,7 @@ static int _flag_prompt = 0;  // prompt for debug command
 static int _flag_exec   = 1;  // execute next instruction
 static int _flag_exit   = 0;  // exit main loop
 static int _flag_mon    = 0;  // monitor IPS
+static int _flag_regs   = 0;  // display regs each instruction
 
 static int debug_proc ()
 	{
@@ -110,9 +113,9 @@ static int debug_proc ()
 		{
 		if (_flag_prompt)
 			{
-			putchar ('\n');
-			regs_print ();
-			putchar ('\n');
+			//putchar ('\n');
+			//if (_flag_regs) regs_print ();
+			//putchar ('\n');
 
 			// Get user command
 			// FIXME: use safer input function
@@ -151,6 +154,11 @@ static int debug_proc ()
 					_flag_exec = 0;
 					break;
 
+				case 'R':
+					_flag_trace = 1;
+					_flag_exec = 0;
+					_flag_regs ^= 1;
+					break;
 				// Step over
 
 				case 'p':
@@ -175,6 +183,14 @@ static int debug_proc ()
 					_flag_trace = 1;
 					_flag_prompt = 0;
 					_flag_exec = 1;
+					_flag_regs = 0;
+					break;
+
+				case 'C':
+					_flag_trace = 1;
+					_flag_prompt = 0;
+					_flag_exec = 1;
+					_flag_regs = 1;
 					break;
 
 				// Go (keep breakpoints)
@@ -200,6 +216,10 @@ static int debug_proc ()
 					if (err) puts ("error: timer interrupt");
 					break;
 
+				default:
+					puts ("?\n");
+					continue;
+
 				}  // command switch
 			}  // _flag_prompt
 
@@ -215,6 +235,8 @@ static int debug_proc ()
 //------------------------------------------------------------------------------
 
 int info_level = 0;
+unsigned int sym_code = -1;
+unsigned int sym_data = -1;
 
 static void cpu_proc (void)
 	{
@@ -232,6 +254,8 @@ static void cpu_proc (void)
 		byte_t vect;
 		err = int_ack (&vect);
 		assert (!err);
+		if (vect != 8)
+			{ printf("[INT %x]", vect); fflush(stdout); }
 		err = exec_int (vect);
 		assert (!err);
 		}
@@ -310,6 +334,7 @@ static void cpu_proc (void)
 		print_column (op_code_str, 3 * OPCODE_MAX + 1);
 		print_op (&_op_desc);
 		putchar ('\n');
+		if (_flag_regs) regs_print ();
 		fflush (stdout);
 
 		code_stat [addr_seg_off (op_code_seg, op_code_off)] = 1;
@@ -396,6 +421,9 @@ static void usage (char * argv0)
 	printf ("usage: %s [options]\n\n", argv0);
 	puts ("  -w <address>         load address");
 	puts ("  -f <path>            file path");
+	puts ("  -S <path>            symbol table path");
+	puts ("  -C <segment>         symtab text segment");
+	puts ("  -D <segment>         symtab data segment");
 	puts ("  -I <path>            disk image path");
 	puts ("  -x <segment:offset>  execute address");
 	puts ("  -c <address>         code breakpoint address");
@@ -417,13 +445,14 @@ int command_line (int argc, char * argv [])
 	int file_loaded = 0;
 	addr_t file_address = -1;
 	char * file_path = NULL;
+	char * sym_path = NULL;
 	char * disk_image_path = NULL;
 	addr_t new_bp = -1;
 	addr_t * new_array = NULL;
 
 	while (1)
 		{
-		opt = getopt (argc, argv, "w:f:I:x:c:d:v:tTmip");
+		opt = getopt (argc, argv, "w:C:D:f:S:I:x:c:d:v:tTmip");
 		if (opt < 0 || opt == '?') break;
 
 		switch (opt)
@@ -440,9 +469,39 @@ int command_line (int argc, char * argv [])
 
 				break;
 
+			case 'C':  // symbol table text segment
+				if (sscanf (optarg, "%x", &sym_code) != 1)
+					{
+					puts ("error: bad symtab text segment");
+					}
+				else
+					{
+					printf ("info: symtabl text segment  %.5Xh\n", sym_code);
+					}
+
+				break;
+
+			case 'D':  // symbol table data segment
+				if (sscanf (optarg, "%x", &sym_data) != 1)
+					{
+					puts ("error: bad symtab data segment");
+					}
+				else
+					{
+					printf ("info: symtabl data segment  %.5Xh\n", sym_data);
+					}
+
+				break;
+
 			case 'f':  // file path
 				file_path = optarg;
 				printf ("info: load file %s\n", file_path);
+				break;
+
+			case 'S':  // symbols file path
+				sym_path = optarg;
+				if (sym_read_symbols(sym_path))
+					printf ("info: symbols file %s\n", sym_path);
 				break;
 
 			case 'I':  // disk image file path
