@@ -201,7 +201,7 @@ hex:
             goto hex;
     }
     for (p = next(lastp); ; lastp = p, p = next(p)) {
-        if (!istype(p) || ((unsigned short)(unsigned)addr < *(unsigned short __far *)(&p[ADDR])))
+        if (!istype(p) || ((unsigned short)(uintptr_t)addr < *(unsigned short __far *)(&p[ADDR])))
             break;
     }
     int lastaddr = *(unsigned short __far *)(&lastp[ADDR]);
@@ -243,7 +243,7 @@ void * noinstrument sym_fn_start_address(void *addr)
     if (!syms) return NULL;
     lastp = syms;
     for (p = next(lastp); ; lastp = p, p = next(p)) {
-        if (!type_text(p) || ((unsigned short)(unsigned)addr < *(unsigned short __far *)(&p[ADDR])))
+        if (!type_text(p) || ((unsigned short)(uintptr_t)addr < *(unsigned short __far *)(&p[ADDR])))
             break;
     }
     return (void *) (intptr_t) *(unsigned short __far *)(&lastp[ADDR]);
