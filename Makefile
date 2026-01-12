@@ -108,6 +108,7 @@ ifeq ($(TARGET), elks)
 	PLATFORM = 8xxx
 	BOARD = pcxtat
 	EMU86_OBJS += rom-bios.o rom-elks.o
+	EMU86_OBJS += syms.o
 endif
 
 ifeq ($(TARGET), advtech)
@@ -116,6 +117,7 @@ ifeq ($(TARGET), advtech)
 	PLATFORM = r8810
 	BOARD = advtech
 	EMU86_OBJS += rom-advtech.o
+	EMU86_OBJS += syms.o
 endif
 
 ifeq ($(TARGET), or566)
@@ -124,6 +126,7 @@ ifeq ($(TARGET), or566)
 	PLATFORM = 8018x
 	BOARD = or566
 	EMU86_OBJS += rom-or566.o
+	EMU86_OBJS += syms.o
 endif
 
 EMU86_OBJS += \
