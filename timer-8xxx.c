@@ -8,7 +8,7 @@
 #include "int-8xxx.h"
 #include "mem-io-pcxtat.h"
 
-#define TIMER_MAX 3000
+#define TIMER_MAX 30000
 
 static int timer_enabled = 1;
 static int timer_count = 0;

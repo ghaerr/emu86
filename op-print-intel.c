@@ -11,10 +11,13 @@
 #include "op-common.h"
 #include "op-class.h"
 
+#include "syms.h"
+#include "emu-proc.h"
 
 // Opcode helpers
 
 extern word_t op_code_off;
+extern unsigned int sym_code, sym_data;
 
 char op_code_str [3 * OPCODE_MAX + 2];
 byte_t op_code_pos;
@@ -86,7 +89,13 @@ static void print_mem (byte_t flags, short rel)
 			}
 		else
 			{
-			printf ("%hXh", (word_t) rel);
+			if (seg_get(SEG_DS) == sym_data)
+				{
+				printf ("%s", sym_data_symbol((void *)(long)(unsigned short)
+					((word_t) rel), -1));
+				}
+			else
+				printf ("%hXh", (word_t) rel);
 			}
 		}
 
@@ -141,6 +150,12 @@ static void print_var (op_var_t * var)
 
 			// Near address is relative
 
+			if (seg_get(SEG_CS) == sym_code)
+				{
+				printf ("%s", sym_text_symbol((void *)(long)(unsigned short)
+					((short) op_code_off + var->val.s), -1));
+				break;
+				}
 			printf ("%.4Xh", (word_t) ((short) op_code_off + var->val.s));
 			break;
 

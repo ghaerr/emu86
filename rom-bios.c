@@ -33,6 +33,15 @@ void rom_init_0 (void)
 	mem_stat [0xF1007] = 0x06;
 	mem_stat [0xF1008] = 0x6C;
 	mem_stat [0xF1009] = 0x04;
+
+	mem_stat [0xF1006] = 0x90;  // NOP
+	mem_stat [0xF1007] = 0x90;  // NOP
+	mem_stat [0xF1008] = 0x90;  // NOP
+	mem_stat [0xF1009] = 0x90;  // NOP
+
+	mem_stat [0xF1006] = 0xCD;  // INT 1C
+	mem_stat [0xF1007] = 0x1C;
+
 	mem_stat [0xF100A] = 0xB0;  // MOV AL,20h
 	mem_stat [0xF100B] = 0x20;
 	mem_stat [0xF100C] = 0xE6;  // OUT 20h,AL
@@ -47,6 +56,13 @@ void rom_init_0 (void)
 	mem_stat [0x08 * 4 + 1] = 0x10;
 	mem_stat [0x08 * 4 + 2] = 0x00;
 	mem_stat [0x08 * 4 + 3] = 0xF0;
+
+	// Point vector 1Ch to IRET
+
+	mem_stat [0x1C * 4 + 0] = 0x10;
+	mem_stat [0x1C * 4 + 1] = 0x10;
+	mem_stat [0x1C * 4 + 2] = 0x00;
+	mem_stat [0x1C * 4 + 3] = 0xF0;
 	}
 
 
